@@ -1,10 +1,10 @@
 package tech.devinhouse.dipm3projeto1.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import tech.devinhouse.dipm3projeto1.model.Passageiro;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
+import tech.devinhouse.dipm3projeto1.dto.ConfirmacaoRequestDto;
+import tech.devinhouse.dipm3projeto1.dto.ConfirmacaoResponseDto;
+import tech.devinhouse.dipm3projeto1.dto.PassageiroResponseDto;
 import tech.devinhouse.dipm3projeto1.service.PassageiroService;
 
 @RestController
@@ -17,7 +17,12 @@ public class PassageirosController {
     }
 
     @GetMapping("/{cpf}")
-    public Passageiro findByCpf(@PathVariable String cpf) {
-        return service.findByCpf(cpf);
+    public PassageiroResponseDto findByCpf(@PathVariable String cpf) {
+        return new PassageiroResponseDto(service.findByCpf(cpf));
+    }
+
+    @PostMapping("/confirmacao")
+    public ConfirmacaoResponseDto checkIn(@RequestBody @Valid ConfirmacaoRequestDto request) {
+        return new ConfirmacaoResponseDto(service.checkIn(request));
     }
 }
