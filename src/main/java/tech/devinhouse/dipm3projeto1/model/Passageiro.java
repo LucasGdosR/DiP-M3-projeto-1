@@ -1,9 +1,6 @@
 package tech.devinhouse.dipm3projeto1.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -28,4 +25,6 @@ public class Passageiro {
     private Classificacao classificacao;
     @NotNull
     private int milhas;
+    @OneToOne
+    private Confirmacao confirmacao;
 }
