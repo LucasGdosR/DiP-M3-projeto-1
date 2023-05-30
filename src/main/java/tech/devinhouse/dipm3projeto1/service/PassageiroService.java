@@ -10,6 +10,7 @@ import tech.devinhouse.dipm3projeto1.repository.ConfirmacaoRepository;
 import tech.devinhouse.dipm3projeto1.repository.PassageiroRepository;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class PassageiroService {
@@ -65,5 +66,9 @@ public class PassageiroService {
                         .concat(confirmacao.getEticket()));
 
         return confirmacao;
+    }
+
+    public List<Passageiro> findAll() {
+        return passageiroRepository.findAll();
     }
 }
