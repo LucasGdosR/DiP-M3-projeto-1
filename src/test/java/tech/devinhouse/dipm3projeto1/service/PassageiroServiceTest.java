@@ -99,12 +99,14 @@ class PassageiroServiceTest {
      * POST -> checkIn(request)
      */
     @Test
-    void shouldConfirmCheckIn() {
+    void shouldConfirmCheckInAndIncrementMiles() {
         when(passageiroRepository.findById(passageiroMockUp.getCpf())).thenReturn(Optional.of(passageiroMockUp));
         when(assentosService.findAll()).thenReturn(List.of(requestMockUp.getAssento()));
+        int oldMiles = passageiroMockUp.getMilhas();
 
         Confirmacao confirmacao = service.checkIn(requestMockUp);
         assertEquals(requestMockUp.getAssento(), confirmacao.getAssento());
+        assertEquals(oldMiles + passageiroMockUp.getClassificacao().milhas, passageiroMockUp.getMilhas());
     }
 
     @Test
