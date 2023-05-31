@@ -70,7 +70,7 @@ public class PassageiroService {
 
         boolean fileiraDeEmergencia = (assento.charAt(0) == '5') || (assento.charAt(0) == '6');
 
-        LocalDate dataDeMaioridade = passageiro.getDataNascimento().minusYears(18);
+        LocalDate dataDeMaioridade = passageiro.getDataNascimento().plusYears(18);
         boolean ehMenorDeIdade = dataDeMaioridade.isAfter(LocalDate.now());
 
         if (fileiraDeEmergencia && ehMenorDeIdade)
