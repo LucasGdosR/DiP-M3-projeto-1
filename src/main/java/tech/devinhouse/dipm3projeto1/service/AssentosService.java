@@ -12,7 +12,7 @@ public class AssentosService {
     private final List<String> assentosRepository;
 
     public AssentosService() {
-        assentosRepository = new ArrayList<>();
+        assentosRepository = new ArrayList<>(NUMERO_DE_FILEIRAS * ASSENTOS_POR_FILEIRA);
 
         for (int i = 1; i <= NUMERO_DE_FILEIRAS; i++)
             for (int j = 0; j < ASSENTOS_POR_FILEIRA; j++) {
