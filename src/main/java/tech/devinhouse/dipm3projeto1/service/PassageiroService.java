@@ -26,31 +26,19 @@ public class PassageiroService {
 
     public Passageiro findByCpf(String cpf) {
         return passageiroRepository.findById(cpf).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "CPF não cadastrado."));
+    }
+
+    public List<Passageiro> findAll() {
+        return passageiroRepository.findAll();
     }
 
     public Confirmacao checkIn(ConfirmacaoRequestDto request) {
-        Passageiro passageiro = passageiroRepository.findById(request.getCpf()).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        Passageiro passageiro = findByCpf(request.getCpf());
+
+        validateCheckIn(passageiro, request);
 
         String assento = request.getAssento();
-
-        if (!assentosService.findAll().contains(assento))
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-
-        if (confirmacaoRepository.existsByAssento(assento))
-            throw new ResponseStatusException(HttpStatus.CONFLICT);
-
-        boolean fileiraDeEmergencia = (assento.charAt(0) == '5') || (assento.charAt(0) == '6');
-
-        LocalDate dataDeMaioridade = passageiro.getDataNascimento().minusYears(18);
-        boolean ehMenorDeIdade = dataDeMaioridade.isAfter(LocalDate.now());
-
-        if (fileiraDeEmergencia && ehMenorDeIdade)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-
-        if (fileiraDeEmergencia && !request.getMalasDespachadas())
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
 
         Confirmacao confirmacao = new Confirmacao(assento);
         confirmacaoRepository.save(confirmacao);
@@ -68,7 +56,29 @@ public class PassageiroService {
         return confirmacao;
     }
 
-    public List<Passageiro> findAll() {
-        return passageiroRepository.findAll();
+    private void validateCheckIn(Passageiro passageiro, ConfirmacaoRequestDto request) {
+        String assento = request.getAssento();
+
+        if (passageiro.getConfirmacao() != null)
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Passageiro já realizou check-in.");
+
+        if (!assentosService.findAll().contains(assento))
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assento não existente.");
+
+        if (confirmacaoRepository.existsByAssento(assento))
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Assento ocupado.");
+
+        boolean fileiraDeEmergencia = (assento.charAt(0) == '5') || (assento.charAt(0) == '6');
+
+        LocalDate dataDeMaioridade = passageiro.getDataNascimento().minusYears(18);
+        boolean ehMenorDeIdade = dataDeMaioridade.isAfter(LocalDate.now());
+
+        if (fileiraDeEmergencia && ehMenorDeIdade)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Fileiras de emergência só podem ser ocupadas por passageiros maiores de idade.");
+
+        if (fileiraDeEmergencia && !request.getMalasDespachadas())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Obrigatório despachar malas nas fileiras de emergência.");
     }
 }
