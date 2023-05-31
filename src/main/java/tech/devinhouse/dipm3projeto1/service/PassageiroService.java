@@ -29,14 +29,38 @@ public class PassageiroService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "CPF não cadastrado."));
     }
 
+    public List<Passageiro> findAll() {
+        return passageiroRepository.findAll();
+    }
+
     public Confirmacao checkIn(ConfirmacaoRequestDto request) {
-        Passageiro passageiro = passageiroRepository.findById(request.getCpf()).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "CPF não cadastrado."));
+        Passageiro passageiro = findByCpf(request.getCpf());
+
+        validateCheckIn(passageiro, request);
+
+        String assento = request.getAssento();
+
+        Confirmacao confirmacao = new Confirmacao(assento);
+        confirmacaoRepository.save(confirmacao);
+
+        passageiro.setMilhas(passageiro.getMilhas() + passageiro.getClassificacao().milhas);
+        passageiro.setConfirmacao(confirmacao);
+        passageiroRepository.save(passageiro);
+
+        System.out.println(
+                "Confirmação feita pelo passageiro de CPF "
+                        .concat(passageiro.getCpf())
+                        .concat(" com e-ticket ")
+                        .concat(confirmacao.getEticket()));
+
+        return confirmacao;
+    }
+
+    private void validateCheckIn(Passageiro passageiro, ConfirmacaoRequestDto request) {
+        String assento = request.getAssento();
 
         if (passageiro.getConfirmacao() != null)
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Passageiro já realizou check-in.");
-
-        String assento = request.getAssento();
 
         if (!assentosService.findAll().contains(assento))
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assento não existente.");
@@ -56,24 +80,5 @@ public class PassageiroService {
         if (fileiraDeEmergencia && !request.getMalasDespachadas())
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Obrigatório despachar malas nas fileiras de emergência.");
-
-        Confirmacao confirmacao = new Confirmacao(assento);
-        confirmacaoRepository.save(confirmacao);
-
-        passageiro.setMilhas(passageiro.getMilhas() + passageiro.getClassificacao().milhas);
-        passageiro.setConfirmacao(confirmacao);
-        passageiroRepository.save(passageiro);
-
-        System.out.println(
-                "Confirmação feita pelo passageiro de CPF "
-                        .concat(passageiro.getCpf())
-                        .concat(" com e-ticket ")
-                        .concat(confirmacao.getEticket()));
-
-        return confirmacao;
-    }
-
-    public List<Passageiro> findAll() {
-        return passageiroRepository.findAll();
     }
 }
