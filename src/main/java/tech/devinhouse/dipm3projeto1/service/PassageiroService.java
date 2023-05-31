@@ -33,6 +33,9 @@ public class PassageiroService {
         Passageiro passageiro = passageiroRepository.findById(request.getCpf()).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "CPF não cadastrado."));
 
+        if (passageiro.getConfirmacao() != null)
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Passageiro já realizou check-in.");
+
         String assento = request.getAssento();
 
         if (!assentosService.findAll().contains(assento))
