@@ -26,20 +26,20 @@ public class PassageiroService {
 
     public Passageiro findByCpf(String cpf) {
         return passageiroRepository.findById(cpf).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "CPF não cadastrado."));
     }
 
     public Confirmacao checkIn(ConfirmacaoRequestDto request) {
         Passageiro passageiro = passageiroRepository.findById(request.getCpf()).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "CPF não cadastrado."));
 
         String assento = request.getAssento();
 
         if (!assentosService.findAll().contains(assento))
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assento não existente.");
 
         if (confirmacaoRepository.existsByAssento(assento))
-            throw new ResponseStatusException(HttpStatus.CONFLICT);
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Assento ocupado.");
 
         boolean fileiraDeEmergencia = (assento.charAt(0) == '5') || (assento.charAt(0) == '6');
 
@@ -47,10 +47,12 @@ public class PassageiroService {
         boolean ehMenorDeIdade = dataDeMaioridade.isAfter(LocalDate.now());
 
         if (fileiraDeEmergencia && ehMenorDeIdade)
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Fileiras de emergência só podem ser ocupadas por passageiros maiores de idade.");
 
         if (fileiraDeEmergencia && !request.getMalasDespachadas())
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Obrigatório despachar malas nas fileiras de emergência.");
 
         Confirmacao confirmacao = new Confirmacao(assento);
         confirmacaoRepository.save(confirmacao);
